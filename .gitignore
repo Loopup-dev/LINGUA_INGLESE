@@ -1,0 +1,6 @@
+prove/
+# contiene dati personali: non va nel repository pubblico
+PROMPT_COSTRUZIONE.md
+__pycache__/
+*.pyc
+.env
