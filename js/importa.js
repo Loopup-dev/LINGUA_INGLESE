@@ -184,11 +184,27 @@ async function daGemini(id, avanza) {
     }
     for (const s of seg) {
       if (s.inizio < da - 1 || s.inizio >= a + 1) continue;
-      if (out.length && s.inizio < out[out.length - 1].inizio + 0.2) continue;
+      const prec = out[out.length - 1];
+      if (prec && s.inizio < prec.inizio + 0.2) continue;
+      // lo spezzone parte 8 secondi prima: un pezzo già trascritto può tornare due volte
+      if (prec && s.inizio < prec.fine + 1 && confronta(prec.testo, s.testo).accuratezza > 0.6) continue;
       out.push({ inizio: s.inizio, fine: Math.max(s.fine, s.inizio + 0.5), testo: pulisciRumori(s.testo) });
     }
   }
-  return { segmenti: chiudiSovrapposizioni(out.filter(s => s.testo)), durata };
+  return { segmenti: chiudiSovrapposizioni(unisciFrammenti(out.filter(s => s.testo))), durata };
+}
+
+// Gemini a volte divide alle virgole: si riuniscono i pezzi finché la frase non è finita.
+export function unisciFrammenti(segmenti) {
+  const out = [];
+  for (const s of segmenti) {
+    const prec = out[out.length - 1];
+    if (prec && !FINE_FRASE.test(prec.testo) && s.inizio - prec.fine < 1.2 && s.fine - prec.inizio <= MAX_SEGMENTO) {
+      prec.testo += ' ' + s.testo;
+      prec.fine = s.fine;
+    } else out.push({ ...s });
+  }
+  return out;
 }
 
 // ---------- Glossario ----------

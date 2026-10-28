@@ -201,7 +201,8 @@ Ignora musica e rumori; non descrivere le immagini.`;
   const parti = [
     {
       file_data: { file_uri: `https://www.youtube.com/watch?v=${c.youtubeId}` },
-      video_metadata: { start_offset: `${Math.max(0, Math.floor(c.da))}s`, end_offset: `${Math.ceil(c.a + 8)}s` },
+      // 8 secondi di contesto prima: una frase a cavallo fra due spezzoni non va persa.
+      video_metadata: { start_offset: `${Math.max(0, Math.floor(c.da - 8))}s`, end_offset: `${Math.ceil(c.a + 8)}s` },
     },
     { text: prompt },
   ];
