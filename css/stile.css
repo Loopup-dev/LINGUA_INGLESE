@@ -72,6 +72,7 @@ button.attivo { background: var(--accento-tenue); border-color: var(--accento); 
 button.mini { min-height: 34px; padding: 0.25rem 0.5rem; }
 button.testo, .mini.testo { border-color: transparent; background: none; color: var(--accento); padding-inline: 0.4rem; }
 button.grande { width: 100%; min-height: 72px; font-size: 1.15rem; border-radius: var(--raggio); background: var(--accento); color: var(--accento-testo); border: 0; }
+button.grande.avvio { margin-top: 0.75rem; }
 .icona { width: 1.15em; height: 1.15em; fill: currentColor; flex: none; }
 
 input, select { font: inherit; color: var(--testo); background: var(--superficie); border: 1px solid var(--bordo); border-radius: 10px; padding: 0.5rem 0.7rem; min-height: 44px; }

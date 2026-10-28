@@ -11,23 +11,37 @@ export function useAscolto(lettore, segmento, sfasamento = 0) {
   const { imp } = useApp();
   const [lento, setLento] = useState(false);
   const [inRiproduzione, setInRiproduzione] = useState(false);
+  const [bloccato, setBloccato] = useState(false);
   const riascolti = useRef(0);
   const ascoltato = useRef(false);
-  useEffect(() => { riascolti.current = 0; ascoltato.current = false; }, [segmento?.id]);
+  useEffect(() => { riascolti.current = 0; ascoltato.current = false; setBloccato(false); }, [segmento?.id]);
   const play = (opz = {}) => {
     if (!lettore || !segmento) return;
     const usaLento = opz.lento ?? lento;
     if (ascoltato.current && !opz.automatico) riascolti.current++;
     ascoltato.current = true;
+    setBloccato(false);
     setInRiproduzione(true);
     lettore.riproduciSegmento(segmento.inizio + sfasamento, segmento.fine + sfasamento, {
       velocita: usaLento ? imp.velocitaLenta : 1,
       prima: imp.margineInizio, dopo: imp.margineFine,
       onFine: () => { setInRiproduzione(false); opz.onFine?.(); },
     });
+    // Senza un clic prima, il browser può bloccare l'avvio automatico: allora serve un tocco.
+    if (opz.automatico) {
+      setTimeout(() => {
+        const stato = lettore.player?.getPlayerState?.();
+        if (lettore.timer && stato !== 1 && stato !== 3) {
+          lettore.fermaControllo();
+          ascoltato.current = false;
+          setInRiproduzione(false);
+          setBloccato(true);
+        }
+      }, 1500);
+    }
   };
   const cambiaLento = () => { const v = !lento; setLento(v); play({ lento: v }); };
-  return { play, lento, cambiaLento, inRiproduzione, riascolti };
+  return { play, lento, cambiaLento, inRiproduzione, riascolti, bloccato };
 }
 
 function Scorciatoie({ azioni }) {
@@ -48,6 +62,9 @@ export function Legenda({ ripasso = false }) {
 }
 
 function Controlli({ ascolto, onAiuto, livelloAiuto, maxAiuto = 4, onSalta, onRiproponi, fatto }) {
+  if (ascolto.bloccato) {
+    return html`<button class="grande avvio" onClick=${() => ascolto.play()}><${Icona} n="play" /> Tocca per ascoltare</button>`;
+  }
   return html`<div class="controlli">
     <button onClick=${() => ascolto.play()} title="Riascolta (Alt+R)"><${Icona} n="replay" /> Riascolta</button>
     <button class=${ascolto.lento ? 'attivo' : ''} onClick=${ascolto.cambiaLento} title="Lento (Alt+L)" aria-pressed=${ascolto.lento}>${ascolto.lento ? 'Lento: sì' : 'Lento: no'}</button>
